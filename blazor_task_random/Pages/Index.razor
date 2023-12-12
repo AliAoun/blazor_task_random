@@ -1,0 +1,37 @@
+﻿<!-- Pages/Index.razor -->
+@page "/index"
+
+@using blazor_task_random.Data
+@using blazor_task_random.Models;
+@inject myDbContext DbContext
+
+<h3>Classes with More Than 100 Students</h3>
+@foreach (var result in GetClassesWithMoreThan100Students())
+{
+    <p>@result.Name - @result.RoomNumber</p>
+}
+
+<h3>Students Who Take No Classes with Teachers in Department 22</h3>
+@foreach (var result in GetStudentsWithNoClassesInDept(22))
+{
+    <p>@result.Sid - @result.Major</p>
+}
+
+@code {
+    private IEnumerable<Class> GetClassesWithMoreThan100Students()
+    {
+        return DbContext.Classes
+            .Where(c => DbContext.Enrolled.Count(e => e.Cid == c.Cid) > 100)
+            .ToList();
+    }
+
+    private IEnumerable<Student> GetStudentsWithNoClassesInDept(int deptId)
+    {
+        return DbContext.Students
+            .Where(s => !DbContext.Enrolled.Any(e => e.Sid == s.Sid &&
+                                                     DbContext.Classes.Any(c => c.Fid == e.Cid &&
+                                                                              DbContext.Faculty.Any(f => f.Fid == c.Fid &&
+                                                                                                         f.Deptid == deptId))))
+            .ToList();
+    }
+}
